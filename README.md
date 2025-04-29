@@ -1,4 +1,4 @@
-# Object Detection Pipeline with YOLOv10 and OAK-1 Camera
+# 📄 Object Detection Pipeline with YOLOv10 and OAK-1 Camera
 
 > Adapted and extended from initial YOLOv10 template provided by Roboflow/Nicolai Nielsen to work with Luxonis OAK-1 Camera using DepthAI API.
 
@@ -12,8 +12,11 @@ Key extensions include:
 - Adaptation from standard webcam input to **OAK-1 camera streams** using **DepthAI API**.
 - Manual focus setting and 4K resolution capture.
 - Real-time bounding box annotation with **Supervision** library.
-- Extraction of **bounding box centers** on-demand.
-- Efficient resource management: heavy computations are triggered manually.
+- Extraction and saving of **bounding box centers**, after **3 consecutive frames** with detection.
+- Dynamic switching between **Capture Mode** and **Detection Mode** with dedicated keys.
+- **Robust false positive filtering** during detection.
+- Always-visible **Waiting window** during object detection phase.
+- Simple script to generate **example images** for testing your model immediately.
 
 This pipeline can be used in applications such as:
 - Object detection and tracking.
@@ -26,13 +29,16 @@ This pipeline can be used in applications such as:
 
 ```
 📁 project-root/
-├── 📂 src/                # Source code
-│    └── detection_pipeline.py
-├── 📂 models/             # Trained YOLOv10 models (.pt files)
-├── 📂 data/               # Captured images
-│    └── detected_objects/
-├── 📂 outputs/            # Annotated outputs (optional)
-├── 📂 docs/               # Technical documentation (optional)
+├── 📁 src/                # Source code
+│    ├── detection_pipeline.py      # Main detection pipeline
+│    ├── sample_captures.py         # Capture example images
+│    └── detection_example.py       # Verify detection on sample images
+├── 📁 models/             # Trained YOLOv10 models (.pt files)
+│    └── best.pt
+├── 📁 output/             # Output images
+│    ├── captures/                  # Images captured manually
+│    └── detected_centers/          # Images with bounding box center annotations
+├── 📁 example_images/     # Example test images captured with model
 ├── 📄 README.md           # Project description
 ├── 📄 requirements.txt    # Python dependencies
 ├── 📄 LICENSE             # License file (MIT)
@@ -68,7 +74,7 @@ pip install torch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 --index-url https
 
 ---
 
-## 🛠 Technologies Used
+## 🛠️ Technologies Used
 
 - [YOLOv10 (Ultralytics framework)](https://github.com/THU-MIG/yolov10)
 - [DepthAI SDK](https://docs.luxonis.com/projects/api/en/latest/)
@@ -93,7 +99,10 @@ In Chapter 4 of the thesis:
 Special extensions implemented in this project:
 - Extracting pixel coordinates of bounding box centers for object-centric depth estimation.
 - Handling OAK-1 camera streams, including manual autofocus control.
-- **Resource-efficient pipeline:** heavy computations (like center and coordinate extraction) are performed only when the user requests it by pressing the `k` key, optimizing real-time performance.
+- **Resource-efficient pipeline:** heavy computations are performed only on-demand.
+- **False positive reduction:** requiring 3 consecutive frames with detection.
+- **Dynamic modes:** capture vs detection with real-time switching.
+- **Example images provided** to verify detection functionality immediately.
 
 ---
 
@@ -102,13 +111,16 @@ Special extensions implemented in this project:
 - **Real-time Display:**
   - Bounding boxes are shown live with minimal overhead.
 - **Capture Image (`c` key):**
-  - Saves the current frame without additional heavy annotations.
-- **On-demand Center Calculation (`k` key):**
-  - Calculates and displays bounding box centers and coordinates only when required.
+  - Saves the current raw frame manually.
+- **Enter Detection Mode (`k` key):**
+  - Waits until the object is detected for 3 consecutive frames.
+  - Then, saves an image with bounding boxes and center annotations.
+- **Return to Capture Mode (`r` key):**
+  - Cancels detection mode and resumes normal capturing.
 - **Exit Stream (`q` key):**
   - Closes the video stream and windows.
 
-This strategy ensures an optimized, responsive application suitable for real-world deployments.
+> While waiting for detection, a dedicated "Waiting" window is displayed, ensuring clear user feedback.
 
 ---
 
@@ -117,10 +129,12 @@ This strategy ensures an optimized, responsive application suitable for real-wor
 1. Initialize OAK-1 camera pipeline with 4K resolution.
 2. Load a trained **YOLOv10** model (`best.pt`).
 3. Capture live frames from the OAK-1.
-4. Run YOLOv10 inference on each frame.
-5. Annotate detections (bounding boxes, labels).
-6. Calculate and display bounding box centers on-demand.
-7. Save frames and detection data via user input.
+4. Annotate detections on each frame.
+5. Press `c` to manually capture a frame.
+6. Press `k` to enter detection mode and wait for a valid detection.
+7. Press `r` to return to normal capture mode if needed.
+8. Save frames and detection results organized under different folders.
+9. Validate functionality using `example_images/` with `detection_example.py`.
 
 ---
 
@@ -128,37 +142,21 @@ This strategy ensures an optimized, responsive application suitable for real-wor
 
 ### 1. OpenCV GUI Errors (`cv2.imshow`, `cv2.FONT_HERSHEY_SIMPLEX`)
 
-**Problem:**  
+**Problem:**
 You might encounter errors like:
-
 - `cv2.error: The function is not implemented. Rebuild the library with Windows, GTK+ 2.x or Cocoa support`
 - `AttributeError: module 'cv2' has no attribute 'FONT_HERSHEY_SIMPLEX'`
 
-**Cause:**  
+**Cause:**
 The `supervision` package may automatically install `opencv-python-headless`, which lacks GUI support necessary for displaying images and rendering text.
 
-**Solution:**  
-You must ensure that only `opencv-python` is installed, not `opencv-python-headless`.
-
-1. Uninstall both OpenCV versions:
+**Solution:**
 
 ```bash
 pip uninstall opencv-python
 pip uninstall opencv-python-headless
-```
-
-2. Reinstall the correct OpenCV version:
-
-```bash
 pip install opencv-python==4.8.0.76
 ```
-
-3. Verify installation:
-
-```bash
-pip list
-```
-Make sure only `opencv-python` appears, and `opencv-python-headless` is NOT listed.
 
 ---
 
@@ -175,7 +173,7 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 
 ---
 
-## 📬 Contact
+## 📨 Contact
 
 **Rolando Cortez García**  
 Email: rolscg@gmail.com  

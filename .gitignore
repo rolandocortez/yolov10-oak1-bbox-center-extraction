@@ -26,10 +26,8 @@ Thumbs.db
 # Logs
 *.log
 
-# Model files
-*.pt
+# Model files (except best.pt)
 *.pth
 
-# Output and data folders
-detected_objects/
-outputs/
+# Output folders (DO NOT upload captured output)
+output/
