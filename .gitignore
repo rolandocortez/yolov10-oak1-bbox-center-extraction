@@ -1,0 +1,35 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment folders
+venv/
+env/
+.yolov10-oak1-bbox-center-extraction/
+Include/
+Lib/
+Scripts/
+share/
+pyvenv.cfg
+
+# VSCode settings
+.vscode/
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Model files
+*.pt
+*.pth
+
+# Output and data folders
+detected_objects/
+outputs/
